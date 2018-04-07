@@ -59,27 +59,27 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     conv1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, padding='same', kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
     
     # Upsampling the image with kernel size 4 and stride 2
-    output = tf.layers.conv2d_transpose(conv1x1, num_classes, 4, 2, padding='same', kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    output_1 = tf.layers.conv2d_transpose(conv1x1, num_classes, 4, 2, padding='same', kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
     
     # Running a 1x1 convolution on Layer 4
     conv_1x1_4 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1, padding='same', kernel_regularizer = tf.contrib.layers.l2_regularizer(1e-3))
 
     # Shapes should be same while adding two layers. adding skip layer
-    output = tf.add(output, conv_1x1_4)
+    output_2 = tf.add(output_1, conv_1x1_4)
     
     # Upsampling the image with kernel size 4 and stride 2
-    output = tf.layers.conv2d_transpose(output, num_classes, 4, 2, padding='same', kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    output_3 = tf.layers.conv2d_transpose(output_2, num_classes, 4, 2, padding='same', kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
 
     # Running a 1x1 convolution on Layer 3
     conv_1x1_3 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1, padding='same', kernel_regularizer = tf.contrib.layers.l2_regularizer(1e-3))
 
     # Skip layer by adding vgg_layer3_out and previous layer
-    output = tf.add(output, conv_1x1_3)
+    output_4 = tf.add(output_3, conv_1x1_3)
     
     # Upsampling the image with kernel size 16 and stride 8
-    Output = tf.layers.conv2d_transpose(output, num_classes, 16, 8, padding='same', kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    output_5 = tf.layers.conv2d_transpose(output_4, num_classes, 16, 8, padding='same', kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
     
-    return Output
+    return output_5
 tests.test_layers(layers)
 
 
@@ -101,8 +101,8 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
     train_op = optimizer.minimize(cross_entropy_loss)
 
-    return logits, cross_entropy_loss, train_op
-	
+    return logits, train_op, cross_entropy_loss
+
 tests.test_optimize(optimize)
 
 
@@ -163,13 +163,13 @@ def run():
 
         learning_rate = tf.placeholder(tf.float32, name = 'learning_rate')
 
-        logits, cross_entropy_loss, train_op = optimize(layer_output, correct_label, learning_rate, num_classes)
+        logits, train_op, cross_entropy_loss = optimize(layer_output, correct_label, learning_rate, num_classes)
         
         # Train NN using the train_nn function
         epochs = 50
         batch_size = 5
         train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, input_image, correct_label, keep_prob, learning_rate)
-		
+        
         # Save inference data using helper.save_inference_samples
         helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
 
