@@ -30,10 +30,7 @@ The goal of the project is to label the pixels of a road in images using a Fully
 
 ![alt text][image1]
 
-<div>
-	<div class="left">![alt text][image2]</div>
-	<div class="right">![alt text][image3]</div>
-</div>
+![alt text][image2] ![alt text][image3]
 
 <h3 align="center"> Output images <h3>
 
